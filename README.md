@@ -332,14 +332,16 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 - Llama 2 Website: https://ai.meta.com/llama/
 - Llama 2 Repo: https://github.com/facebookresearch/llama
 - Llama 2 Huggingface: https://huggingface.co/docs/transformers/main/model_doc/llama2
-- Mistral Website: 
+- Mistral Website: https://mistral.ai/
 - Mistral repo: https://github.com/mistralai
 - Mistral huggingface: https://huggingface.co/mistralai/Mistral-7B-v0.1
-- https://mistral.ai/
 - RLHF Explained: https://huyenchip.com/2023/05/02/rlhf.html  
 - Transformers Explained: https://deepgram.com/learn/visualizing-and-explaining-transformer-models-from-the-ground-up  
 - Activation Functions Explained: https://www.geeksforgeeks.org/activation-functions-neural-networks/  
 - Understanding Llama2 Architecture: https://ai.plainenglish.io/understanding-llama2-kv-cache-grouped-query-attention-rotary-embedding-and-more-c17e5f49a6d7
+
+## Video Overview of Llama 2 Models
+https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/71966ca2-4d89-4d9b-954f-952834dc25de
 
 
 
