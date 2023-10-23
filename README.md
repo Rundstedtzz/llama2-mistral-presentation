@@ -15,25 +15,38 @@ The challenge lies in developing an LLM that bridges the gap between the perform
 ### Llama 2 and Llama 2-Chat
 On July 19, 2023, Meta released Llama 2 7B, 13B and 70B, and Llama 2-Chat 7B, 13B, and 70B models. (Llama 2 and Llama 2-Chat 34B models were benchmarked but not released due to red teaming issues). These models are successors of the Llama 1 models released in February 2023. Llama 2-Chat models are fine-tuned from Llama 2 models using supervised fine-tuning methods and Reinforcement Learning with Human Feedback (RLHF) (specifically, rejection sampling and Proximal Policy Optimization (PPO)). Meta's methodology emphasizes enhancing LLM safety, with unique observations made during the development process. They aim to provide a comprehensive description of their fine-tuning approach and safety enhancement techniques.
 
-
-<img width="810" alt="Screenshot 2023-10-23 at 12 19 57 AM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/82897cdd-e405-4b0f-8f79-c64900b58b4c">
+The image below demonstrates the birth of Llama 2-Chat from a Llama 2 model.
+<img width="684" alt="Screenshot 2023-10-23 at 12 19 57 AM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/82897cdd-e405-4b0f-8f79-c64900b58b4c">
 
 ### Llama 2 VS Llama 1
-#### General
+
+#### Major differences 
+- In Pre-Training
+  - Llama 2 was trained on 40% more data than Llama 1
+  - More robust data cleaning and data mixing
+  - Doubled the context length and total tokens processed
+- In Fine-Tuning (for Llama2-Chat)
+  - More supervised fine-tuning and human annotations.
+- In Model Architecture
+  - Group Query Attention (GQA) to improve inference scalability for 34B and 70B models.
+ 
+These 2 graphs demonstrate some of the key differences enlisted above.
+<img width="684" alt="Screenshot 2023-10-23 at 12 30 32 AM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/18059a0b-9434-4327-9e2a-a24c559895f6">
+
 <img width="684" alt="Screenshot 2023-10-23 at 12 07 00 AM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/b8c633bb-83c8-4d91-ad9a-0481b8e36778">
 
+### Llama 2 Performance
 
+#### Academic Benchmarks
 
+<img width="684" alt="Screenshot 2023-10-23 at 1 05 43 AM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/a6702100-1cdf-4b3b-951e-6ce7295a3568">
+<img width="684" alt="Screenshot 2023-10-23 at 1 06 17 AM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/d54ca38a-d6d8-4155-86a8-28805c526c37">
+<img width="684" alt="Screenshot 2023-10-23 at 1 06 36 AM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/f98a019e-3960-44fc-b041-5de85631fb63">
 
-#### Architecture
-Group Query Attention
+#### Safety
+<img width="684" alt="Screenshot 2023-10-23 at 12 46 42 AM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/8593dd65-9d59-45e4-b195-5585fa66fd24">
 
-
-
-#### Performance
-
-### Give a Brief Account of How the Problem was Addressed:
-Llama 2 and Llama 2-Chat were developed with up to 70B parameters. In safety and helpfulness benchmarks, Llama 2-Chat generally outperformed other open-source models. Safety improvements were made using specialized data annotation, red-teaming, and iterative evaluations. The models are being released to the public, with guidelines and recommendations provided for safe deployment. The authors have also documented their approach in detail to allow for reproducibility and further research by the community.
+As shown in the graph above, in safety and helpfulness benchmarks, Llama 2-Chat generally outperformed other open-source models. Safety improvements were made using specialized data annotation, red-teaming, and iterative evaluations. The models are being released to the public, with guidelines and recommendations provided for safe deployment. Meta has also documented their approach in detail to allow for reproducibility and further research by the community.
 
 
 ## Architectural Overall
