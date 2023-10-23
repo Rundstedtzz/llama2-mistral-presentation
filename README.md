@@ -274,15 +274,7 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 #### Carbon
 
 ## Critical Analysis & Discussion
-
-- Trained predominantly on English (89.7%)
-
-  - Bias towards English content: This heavy English representation might make the model less reliable or knowledgeable about topics in other languages or from non-English perspectives.
-  - Limitations for global safety guideline and usage: For users who are non-native English speakers or who prefer to interact in their native languages, this could lead to less effective results, potentially propagating biases or misunderstandings from English-centric sources.
-
-<img width="684" alt="image" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/f19421d9-7049-4087-b707-37f6a7aec2fa">
-
-- Other open sourced models: Orca & Phi 1 
+- Other open-sourced models: Orca & Phi 1 
     - Lack of transparency: Omitting specific results can raise questions about the transparency of the model's development and evaluation. Why were these particular results not highlighted? Was there something specific about them that didn't fit the narrative or expectation? For example, Phi 1 model scored 50 in coding with only 1.3B parameters but was not listed on the Benchmark table.
 
 - safety & helpfulness reward model: false refusal
@@ -293,11 +285,17 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
   - Subjectivity: Human evaluators bring their own biases and interpretations to the table. Their evaluations might not be consistent across different individuals or cultures.
   - Scale: Given the vast amount of data the model has been trained on, human evaluation can only cover a minuscule fraction. This means the evaluations might miss edge cases or rare problematic outputs.
 
-- Potential misuse
+- Subject to misuse
   - Malicious use: Like any powerful tool, there's potential for misuse. This could range from spreading misinformation to more advanced malicious intents like phishing or manipulation.
-  - Ethical considerations: The creators and distributors of such models need to think about how they can prevent or at least mitigate the potential for harmful applications.
+  - Ethics considerations: The creators and distributors of such models need to think about how they can prevent or at least mitigate the potential for harmful applications.
 
-- responsible use guide is vague and generic
+- Trained predominantly in English (89.7%)
+  - Bias towards English content: This heavy English representation might make the model less reliable or knowledgeable about topics in other languages or from non-English perspectives.
+  - Limitations for global safety guideline and usage: For users who are non-native English speakers or who prefer to interact in their native languages, this could lead to less effective results, potentially propagating biases or misunderstandings from English-centric sources.
+
+<img width="684" alt="image" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/f19421d9-7049-4087-b707-37f6a7aec2fa">
+
+- Responsible Use guide is vague and generic
   - Lack of specificity: A vague guide might not provide clear instructions or standards for users, leading to varied interpretations and potential misuse.
   - Accountability: It's essential to have a robust and clear guide to ensure the model's responsible usage and to hold users accountable for potential misuse.
 
@@ -307,7 +305,7 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
   - AQuA-RAT (test for mathematical reasoning: table 24) Orca 13B, exactly the same size, got 27.9 vs 21.7
 <img width="648" alt="image" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/fc7800f1-2e64-43ec-a073-6ff8945c9f55">
 
-- sentiment-analysis for (right wing greater than left wing)
+- Sentiment analysis for (right wing greater than left wing)
   - Potential biases: If the model shows different sentiments towards different political ideologies, it might be perceived as biased, leading to mistrust or misuse. This also raises questions about the neutrality of AI models and the data they're trained on.
   
 - Mistral AI
