@@ -1,6 +1,6 @@
 # Paper Presentation: 🦙 Llama 2: Open Foundation and Fine-Tuned Chat Models
 
-## Presenters:
+## Presenters
 - Ricky Sun
 - Yuning Wu
 
