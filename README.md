@@ -49,10 +49,8 @@ These 2 graphs demonstrate some of the key differences enlisted above.
 As shown in the graph above, in safety and helpfulness benchmarks, Llama 2-Chat generally outperformed other open-source models. Safety improvements were made using specialized data annotation, red-teaming, and iterative evaluations. The models are being released to the public, with guidelines and recommendations provided for safe deployment. Meta has also documented their approach in detail to allow for reproducibility and further research by the community.
 
 
-## Architectural Overview
-Prepare a formal pseudocode description of the proposed model, indicate how it differs from previous models
-
-![transformer-vs-llama](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/9c6c3468-cb78-4299-a5a4-cc70489022d4)
+## Architecture Overview
+<img width="684" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/9c6c3468-cb78-4299-a5a4-cc70489022d4">
 
 ### Llama
 
@@ -64,17 +62,17 @@ One of the fundamental advancements in LLaMA2 is the adoption of Rotary Position
 - Decaying Inter-Token Dependency: RoPE is smart about modeling the relationship between tokens. As tokens become more distant from each other in a sequence, RoPE naturally reduces their inter-token dependencies. This gradual decay aligns more closely with how humans understand language, where the importance of earlier words tends to diminish.
 - Enhanced Self-Attention: RoPE equips the linear self-attention mechanisms with relative position encoding, a feature not present in traditional absolute positional encoding. This enhancement allows for more precise utilization of token embeddings.
 
-![RoPE](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/da3bcc52-198f-456f-8ba9-96771ae34c76)
+<img width="684" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/da3bcc52-198f-456f-8ba9-96771ae34c76">
 
 #### RMSNorm (Root Mean Square Layer Normalization)
 
 Llama2 adopts Root Mean Square Layer Normalization (RMSNorm), to enhance the transformer architecture by replacing the existing Layer Normalization (LayerNorm). LayerNorm has been beneficial for improving training stability and model convergence, as it re-centers and re-scales input and weight matrix values. However, this improvement comes at the cost of computational overhead, which slows down the network.
 
-![LN](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/317056a3-ceb5-40ac-bc8a-3ce48847ff40)
+<img width="684" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/317056a3-ceb5-40ac-bc8a-3ce48847ff40">
 
 RMSNorm, on the other hand, retains the re-scaling invariance property while simplifying the computation. It regulates the combined inputs to a neuron using the root mean square (RMS), providing implicit learning rate adaptation. This makes RMSNorm computationally more efficient than LayerNorm.
 
-![RMSLN](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/7a95c485-913a-4b4e-a0f6-3edd2fabbbb6)
+<img width="684" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/7a95c485-913a-4b4e-a0f6-3edd2fabbbb6">
 
 Extensive experiments across various tasks and network architectures show that RMSNorm performs as effectively as LayerNorm while reducing computation time by 7% to 64%.
 
@@ -88,8 +86,7 @@ Regarding the code, the KVCache class is responsible for handling this caching. 
 
 During inference, the process operates on one token at a time, maintaining a sequence length of one. This means that, for Key, Value, and Query, both the linear layer and rotary embedding exclusively target a single token at a specific position. The attention weights are precomputed and stored for Key and Value as caches, ensuring that these calculations occur only once and their results are cached. The script getmethod retrieves past attention weights for Key and Value up to the current position, extending their length beyond 1. During the scaled dot-product operation, the output size matches the query size, which generate only a single token.
 
-![KV-caching](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/fdccfd26-0efe-402c-99cf-eb7deb9701bd)
-
+<img width="684" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/fdccfd26-0efe-402c-99cf-eb7deb9701bd">
 
 #### SwiGLU (Swiss Function + Gated Linear Unit)
 
