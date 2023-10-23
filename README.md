@@ -52,8 +52,7 @@ As shown in the graph above, in safety and helpfulness benchmarks, Llama 2-Chat 
 ## Architecture Overview
 <img width="684" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/9c6c3468-cb78-4299-a5a4-cc70489022d4">
 
-### Llama
-
+### Llama (1 & 2)
 
 #### Rotary Embedding (RoPE)
 
@@ -102,7 +101,7 @@ $$ \text{Swish}\_{\beta}\left(x\right) = x \cdot \sigma\left(\beta x\right) $$
 
 where σ is the sigmoid function. The purpose of the Swish function is to introduce non-linearity into the activation function while still allowing for efficient computation.
 
-### Llama 2 uniques
+### Unique to Llama 2
 
 #### Attention - Group Query Attention (GQA)
 
@@ -140,8 +139,21 @@ Source code + pseudal code
 **************************
 
 
+## Critical Analyses
 
-
+trained predominantly on English (89.7%)
+why not list results for orca & phi 1 (1.3B with 50-score in code)
+safety & helpfulness reward model:
+ false refusal
+limitations of human evaluation
+llama2 is strong enough and could be bad for bad people to use
+open-source vs. close course
+responsible use guide is kind of vague/generic and useless
+Benchmark
+Page 48 social IQ (llama 1 > llama 2)
+AQuA-RAT (test for mathematical reasoning: table 24) Orca 13B, exactly the same size, got 27.9 vs 21.7
+internalize the concept of time
+sentiment-analysis for (right wing greater than left wing)
 
 
 
@@ -164,6 +176,11 @@ Source code + pseudal code
 Answer one or more of the following questions: What was overlooked by the authors? What could have been developed further? Were there any errors? Have others disputed the findings?
 
 ## Future Research
+
+
+## Paper Citation
+
+
 
 ## Links to Helpful Resources
 - Llama 2 Playground: https://huggingface.co/spaces/huggingface-projects/llama-2-7b-chat  
