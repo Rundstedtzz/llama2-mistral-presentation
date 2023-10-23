@@ -49,19 +49,113 @@ These 2 graphs demonstrate some of the key differences enlisted above.
 As shown in the graph above, in safety and helpfulness benchmarks, Llama 2-Chat generally outperformed other open-source models. Safety improvements were made using specialized data annotation, red-teaming, and iterative evaluations. The models are being released to the public, with guidelines and recommendations provided for safe deployment. Meta has also documented their approach in detail to allow for reproducibility and further research by the community.
 
 
-## Architectural Overall
+## Architectural Overview
 Prepare a formal pseudocode description of the proposed model, indicate how it differs from previous models
 
-### Llama 2 vs Llama 1
+![transformer-vs-llama](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/9c6c3468-cb78-4299-a5a4-cc70489022d4)
+
+### Llama
+
+
+#### Rotary Embedding (RoPE)
+
+One of the fundamental advancements in LLaMA2 is the adoption of Rotary Position Embedding (RoPE) in place of traditional absolute positional encoding. What sets RoPE apart is its ability to seamlessly integrate explicit relative position dependencies into the self-attention mechanism of the model. This dynamic approach offers several key advantages:
+- Flexibility in Sequence Length: Traditional position embeddings often require defining a maximum sequence length, limiting their adaptability. RoPE, on the other hand, is incredibly flexible. It can generate position embeddings on-the-fly for sequences of any length.
+- Decaying Inter-Token Dependency: RoPE is smart about modeling the relationship between tokens. As tokens become more distant from each other in a sequence, RoPE naturally reduces their inter-token dependencies. This gradual decay aligns more closely with how humans understand language, where the importance of earlier words tends to diminish.
+- Enhanced Self-Attention: RoPE equips the linear self-attention mechanisms with relative position encoding, a feature not present in traditional absolute positional encoding. This enhancement allows for more precise utilization of token embeddings.
+
+![RoPE](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/da3bcc52-198f-456f-8ba9-96771ae34c76)
+
+#### RMSNorm (Root Mean Square Layer Normalization)
+
+Llama2 adopts Root Mean Square Layer Normalization (RMSNorm), to enhance the transformer architecture by replacing the existing Layer Normalization (LayerNorm). LayerNorm has been beneficial for improving training stability and model convergence, as it re-centers and re-scales input and weight matrix values. However, this improvement comes at the cost of computational overhead, which slows down the network.
+
+![LN](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/317056a3-ceb5-40ac-bc8a-3ce48847ff40)
+
+RMSNorm, on the other hand, retains the re-scaling invariance property while simplifying the computation. It regulates the combined inputs to a neuron using the root mean square (RMS), providing implicit learning rate adaptation. This makes RMSNorm computationally more efficient than LayerNorm.
+
+![RMSLN](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/7a95c485-913a-4b4e-a0f6-3edd2fabbbb6)
+
+Extensive experiments across various tasks and network architectures show that RMSNorm performs as effectively as LayerNorm while reducing computation time by 7% to 64%.
+
+This custom script first standardizes the input x, by dividing it by its root mean square, thereby making it invariant to scaling changes. The learned weight parameter self.weight is applied to each element in the standardized tensor. This operation adjusts the magnitude of the values based on the learned scaling factor.
+
+#### KV (Key-Value) Caching
+
+Key-Value (KV) caching is a technique used to accelerate the inference process in machine learning models, particularly in autoregressive models like GPT and Llama. In these models, generating tokens one by one is a common practice, but it can be computationally expensive because it repeats certain calculations at each step. To address this, KV caching comes into play. It involves caching the previous Keys and Values, so we don’t need to recalculate them for each new token. This significantly reduces the size of matrices used in calculations, making matrix multiplications faster. The only trade-off is that KV caching requires more GPU memory (or CPU memory if a GPU isn’t used) to store these Key and Value states.
+
+Regarding the code, the KVCache class is responsible for handling this caching. It initializes two tensors, one for keys and one for values, both are initially filled with zeros. The update method is used to update the cache with new Key and Value information while the get method retrieves the cached Key and Value information based on the starting position and sequence length. This information can then be used for efficient attention calculations during token generation.
+
+During inference, the process operates on one token at a time, maintaining a sequence length of one. This means that, for Key, Value, and Query, both the linear layer and rotary embedding exclusively target a single token at a specific position. The attention weights are precomputed and stored for Key and Value as caches, ensuring that these calculations occur only once and their results are cached. The script getmethod retrieves past attention weights for Key and Value up to the current position, extending their length beyond 1. During the scaled dot-product operation, the output size matches the query size, which generate only a single token.
+
+![KV-caching](https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/fdccfd26-0efe-402c-99cf-eb7deb9701bd)
+
+
+#### SwiGLU (Swiss Function + Gated Linear Unit)
+
+SwiGLU, as utilized in LLaMA2 models, is an activation function designed to enhance the performance of the position-wise feed-forward network (FFN) layers in the Transformer architecture.
+
+The definition of SwiGLU is given by the following mathematical expression:
+
+$$ \text{SwiGLU}\left(x, W, V, b, c, \beta\right) = \text{Swish}\_{\beta}\left(xW + b\right) \otimes \left(xV + c\right) $$
+
+Here, x is the input to the neuron, W and V are weight matrices, b and c are bias vectors, and β is a constant. The ⊗ symbol denotes element-wise multiplication, while the Swish function is defined as:
+
+$$ \text{Swish}\_{\beta}\left(x\right) = x \cdot \sigma\left(\beta x\right) $$
+
+where σ is the sigmoid function. The purpose of the Swish function is to introduce non-linearity into the activation function while still allowing for efficient computation.
+
 ### Llama 2 uniques
+
+#### Attention - Group Query Attention (GQA)
+
+Llama incorporates a technique called grouped-query attention (GQA) to address memory bandwidth challenges during the autoregressive decoding of Transformer models. The primary issue stems from the need to load decoder weights and attention keys/values at each processing step, which consumes excessive memory.
+
+In response, two strategies are introduced: and .
+
+- Multi-query attention (MQA) involves utilizing multiple query heads with a single key/value head, which speeds up decoder inference. However, it has drawbacks such as quality degradation and training instability.
+
+- Grouped-Query attention (GQA), is an evolution of MQA and strikes a balance by using an intermediate number of key-value heads (more than one but fewer than the query heads). The GQA model efficiently breaks the query into n_heads segments like the original multi-head attention, and the key and value are divided into n_kv_headsgroups, enabling multiple key-value heads to share the same query.
+
+By repeating key-value pairs for computational efficiency, the GQA approach optimizes performance while maintaining quality, as evidenced by the code implementation.
+
+The provided code is for implementing grouped query attention (GQA) within the context of an autoregressive decoder using a Transformer model. Notably, during inference, the sequence length (seq_len) is always set to 1.
+
+SelfAttentionis a class that combines mechanism that we have discussed. The key components of this class are as follows:
+
+- Linear transformations are applied to the input tensor for queries (xq), keys (xk), and values (xv). These transformations project the input data into a form suitable for processing.
+- The rotary embedding is applied to the query, key, and value tensors using the provided frequency complex number. This step enhances the model’s ability to consider positional information and perform attention computations.
+- The key-value pairs (k and v) are cached for efficient memory usage. The cached key-value pairs are retrieved up to current position (start_pos + seq_len)
+The query, key, and value tensors are prepared for Grouped-Query attention calculation by repeating key-value pairs n_rep times, where n_rep corresponds to the number of query heads that share the same key-value pair.
+- Scaled dot-product attention computation. The attention scores are computed by taking the dot product of the query and key, followed by scaling. Softmax is applied to obtain the final attention scores. During the computation, the output size matches the query size, which is also 1.
+- Finally, the module applies a linear transformation (wo) to the output, and the processed output is returned.
+
+#### Attention - Ghost Attention
+
+Summary:
+Ghost Attention (GAtt) is a technique to ensure consistent adherence to specific instructions throughout multi-turn dialogues. By artificially attaching instructions to user messages and adjusting the training process, GAtt helps the model maintain attention on crucial instructions, leading to more consistent and context-aware responses.
+
+Potential Improvements:
+While GAtt shows promise, it's still in a basic form. There's room for enhancement, such as teaching the model to modify the system message during a conversation.
+
+**************************
+Source code + pseudal code
+**************************
+
+
+
+
+
+
+
+
+
 
 #### Llama 2 -> Llama 2 Chat -> RLHF
 
 #### Fine-tuning (AB)
 
-**************************
-Source code + pseudal code
-**************************
+
 
 ### Llama 2 vs other open-sourced models
 
