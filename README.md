@@ -75,16 +75,16 @@ Answer one or more of the following questions: What was overlooked by the author
 ## Future Research
 
 ## Links to Helpful Resources
-Llama 2 Playground: https://huggingface.co/spaces/huggingface-projects/llama-2-7b-chat
-Llama 1 Paper: https://arxiv.org/abs/2302.13971
-Transformers Explained: https://deepgram.com/learn/visualizing-and-explaining-transformer-models-from-the-ground-up
-RMS Normalization: https://arxiv.org/abs/1910.07467
-Rotary Positional Embedding (RoPE): https://arxiv.org/abs/2104.09864
-Activation Functions Explained: https://www.geeksforgeeks.org/activation-functions-neural-networks/
-SwiGLU Activation Function: https://paperswithcode.com/method/swiglu
-RLHF Explained: https://huyenchip.com/2023/05/02/rlhf.html
-MMLU Dataset: https://paperswithcode.com/dataset/mmlu
-MMLU Paper: https://arxiv.org/abs/2009.03300
+Llama 2 Playground: https://huggingface.co/spaces/huggingface-projects/llama-2-7b-chat  
+Llama 1 Paper: https://arxiv.org/abs/2302.13971  
+Transformers Explained: https://deepgram.com/learn/visualizing-and-explaining-transformer-models-from-the-ground-up  
+RMS Normalization: https://arxiv.org/abs/1910.07467  
+Rotary Positional Embedding (RoPE): https://arxiv.org/abs/2104.09864  
+Activation Functions Explained: https://www.geeksforgeeks.org/activation-functions-neural-networks/  
+SwiGLU Activation Function: https://paperswithcode.com/method/swiglu  
+RLHF Explained: https://huyenchip.com/2023/05/02/rlhf.html  
+MMLU Dataset: https://paperswithcode.com/dataset/mmlu  
+MMLU Paper: https://arxiv.org/abs/2009.03300  
 
 
 
