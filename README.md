@@ -1,8 +1,28 @@
 # Paper Presentation: 🦙 Llama 2: Open Foundation and Fine-Tuned Chat Models
 
+Touvron, H., Martin, L., Stone, K., Albert, P., Almahairi, A., Babaei, Y., Bashlykov, N., Batra, S., Bhargava, P., Bhosale, S., Bikel, D., Blecher, L., Ferrer, C. C., Chen, M., Cucurull, G., Esiobu, D., Fernandes, J., Fu, J., Fu, W., … Scialom, T. (2023). Llama 2: Open Foundation and Fine-Tuned Chat Models (arXiv:2307.09288). arXiv. http://arxiv.org/abs/2307.09288
+
 ## Presenters
 - Ricky Sun
 - Yuning Wu
+
+## Table of content
+- Overview
+  - Problems
+  - Llama 2 -> llama 2 Chat
+  - Llama 1 -> llama 2
+  - Llama 2 Performance
+  - Training Data
+- Architecture Overview
+  - Rotary Positional Embedding
+  - RMS Layer Normalization
+  - SwiGLU (Swiss Funtion + Swiss Function + Gated Linear Unit) Activation Function
+  - Group Query Attention
+  - Ghost Attention
+  - Pseudo Code
+- Critical Analysis
+- Code Demo
+- References
 
 ## Overview
 
@@ -51,7 +71,8 @@ As shown in the graph above, in safety and helpfulness benchmarks, Llama 2-Chat 
 #### Data
 - English CommonCrawl [67%]
 
-five CommonCrawl dumps, ranging from 2017
+Common Crawl is a nonprofit 501 organization that crawls the web and freely provides its archives and datasets to the public.
+The team processed five CommonCrawl dumps, ranging from 2017
 to 2020, with the CCNet pipeline (Wenzek et al.,
 2020). This process deduplicates the data at the
 line level, performs language identification with
@@ -62,9 +83,10 @@ in Wikipedia v.s. randomly sampled pages, and
 discarded pages not classified as references.
 
 - C4 [15%]
-
-During exploratory experiments, we
-observed that using diverse pre-processed CommonCrawl datasets improves performance. We thus
+- 
+C4 dataset is a collection of about 750GB of English-language text sourced from the public Common Crawl web scrape.
+During exploratory experiments, the team
+observed that using diverse pre-processed CommonCrawl datasets improves performance. They thus
 included the publicly available C4 dataset (Raffel
 et al., 2020) in our data. The preprocessing of C4
 also contains deduplication and language identification steps: the main difference with CCNet is
@@ -73,8 +95,8 @@ number of words and sentences in a webpage.
 
 - Github [4.5%]
 
-We use the public GitHub
-dataset available on Google BigQuery. We only
+The team use the public GitHub
+dataset available on Google BigQuery. They only
 kept projects that are distributed under the Apache,
 BSD and MIT licenses. Additionally, we filtered
 low quality files with heuristics based on the line
@@ -83,25 +105,25 @@ and removed boilerplate, such as headers, with regular expressions. Finally, we 
 
 - Wikipedia [4.5%]
 
-We add Wikipedia dumps
+They add Wikipedia dumps
 from the June-August 2022 period, covering 20 languages, which use either the Latin or Cyrillic
 scripts: bg, ca, cs, da, de, en, es, fr, hr, hu, it,
-nl, pl, pt, ro, ru, sl, sr, sv, uk. We process the
+nl, pl, pt, ro, ru, sl, sr, sv, uk. They process the
 data to remove hyperlinks, comments and other
 formatting boilerplate.
 
 - Gutenberg and Books3 [4.5%]
 
-We include
+They include
 two book corpora in our training dataset: the Gutenberg Project, which contains books that are in the
 public domain, and the Books3 section of ThePile (Gao et al., 2020), a publicly available dataset
-for training large language models. We perform
+for training large language models. They perform
 deduplication at the book level, removing books
 with more than 90% content overlap.
 
 - ArXiv [2.5%]
 
-We process arXiv Latex files
+They process arXiv Latex files
 to add scientific data to our dataset. Following
 Lewkowycz et al. (2022), we removed everything
 before the first section, as well as the bibliography.
@@ -111,7 +133,7 @@ by users to increase consistency across papers.
 
 - Stack Exchange [2%]
 
-We include a dump of
+They include a dump of
 Stack Exchange, a website of high quality questions and answers that covers a diverse set of domains, ranging from computer science to chemistry.
 We kept the data from the 28 largest websites, removed the HTML tags from text and sorted the
 answers by score (from highest to lowest).
@@ -220,16 +242,18 @@ The query, key, and value tensors are prepared for Grouped-Query attention calcu
 
 #### Attention - Ghost Attention
 
-Summary:
 Ghost Attention (GAtt) is a technique to ensure consistent adherence to specific instructions throughout multi-turn dialogues. By artificially attaching instructions to user messages and adjusting the training process, GAtt helps the model maintain attention on crucial instructions, leading to more consistent and context-aware responses.
 
 Potential Improvements:
 While GAtt shows promise, it's still in a basic form. There's room for enhancement, such as teaching the model to modify the system message during a conversation.
 
+<img width="684" alt="image" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/076e3002-8f13-4d10-ad06-40eec59a0004">
 
 #### Llama 2 -> Llama 2 Chat -> RLHF & rewarding model
 
 <img width="684" alt="image" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/ce81bc02-37a6-4df4-aa68-5f0bdf3445f1">
+
+<img width="684" alt="image" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/a425964f-49cf-4d2c-92f1-8aa338b19b00">
 
 ## Discussion Question: How can we improve some of these architecture components?
 
@@ -311,6 +335,10 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 - Mistral AI
 
 ## Discussion Question: Can you think of any potential improvements?
+
+## Code Demo
+- https://github.com/Rundstedtzz/llama2-mistral-presentation/blob/main/Fine_tune_Llama_2_code_demo.ipynb
+- https://github.com/Rundstedtzz/llama2-mistral-presentation/blob/main/Run_Llama_2_Chat_Models_on_Your_Computer.ipynb
 
 ## Paper Citation
 - Llama 1 Paper: https://arxiv.org/abs/2302.13971
