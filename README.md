@@ -11,7 +11,7 @@ Touvron, H., Martin, L., Stone, K., Albert, P., Almahairi, A., Babaei, Y., Bashl
 
 1. return $e = W_e[:, v]$
 
-### Algorithm: Rotary Positional Embedding
+### Algorithm: Rotary Positional Embedding (need work)
 
 **Input:** <br>
     $x_q \in R^{bs \times len \times d_model}$ - Query tensor <br>
@@ -72,13 +72,59 @@ $\( W_v \in \mathbb{R}^{d_{out} \times d_{in}} \)$, $\( b_v \in \mathbb{R}^{d_{o
 4:  $\alpha_t \leftarrow \frac{\exp(q^T k_t / \sqrt{d_{attn}})}{\sum_u \exp(q^T k_u / \sqrt{d_{attn}})}$ <br>
 5:  $\mathbf{\tilde{v}} = \sum_{t=1} \alpha_t \times v_t $
 
+### Algorithm: Attention
+**Input:**  
+$\( X \in \mathbb{R}^{d_x \times \ell_x} \)$, vector representations of primary sequence. <br>
+$\( Z \in \mathbb{R}^{d_z \times \ell_z} \)$, vector representations of context sequence. <br>
+
+**Output:**  
+$\( \tilde{v} \in \mathbb{R}^{d_{out} \times \ell_x} \)$, updated representations of tokens in X, folding in information from tokens in Z. <br>
+
+**Parameters:** $\( W_{qkv} \)$ consisting of: <br>
+$\( W_q \in \mathbb{R}^{d_{attn} \times d_x} \)$, $\( b_q \in \mathbb{R}^{d_{attn}} \)$ <br>
+$\( W_k \in \mathbb{R}^{d_{attn} \times d_z} \)$, $\( b_k \in \mathbb{R}^{d_{attn}} \)$ <br>
+$\( W_v \in \mathbb{R}^{d_{out} \times d_z} \)$, $\( b_v \in \mathbb{R}^{d_{out}} \)$ <br>
+
+**Hyperparameters:**
+𝐻, number of attention heads <br>
+$\( \text{Mask} \in \{0,1\}^{\ell_z \times \ell_x} \)$ <br>
+
+1. $\( q \leftarrow W_q X + b_q^T \)$  [[Query $\( \in \mathbb{R}^{d_{attn} \times \ell_x} \)]]$ <br>
+2. $\( k \leftarrow W_k Z + b_k^T \)$  [[Key $\( \in \mathbb{R}^{d_{attn} \times \ell_z} \)]]$ <br>
+3. $\( v \leftarrow W_v Z + b_v^T \)$  [[Value $\( \in \mathbb{R}^{d_{out} \times \ell_z} \)]]$ <br>
+4. $\( S \leftarrow KTQ \)$  [[Score $\( \in \mathbb{R}^{\ell_z \times \ell_x} \)]]$ <br>
+5. For each $\( t_z, t_x \)$, if $\( \text{Mask}[t_z, t_x] \)$, then $\( S[t_z, t_x] \leftarrow -\infty \)$ <br>
+6. $\( \tilde{v} = V \cdot \text{softmax}(S/\sqrt{d_{attn}}) \)$ <br>
+
 ### Algorithm: Multi-head Attention
+**Input:**  
+$\( X \in \mathbb{R}^{d_x \times \ell_x} \)$, vector representations of primary sequence. <br>
+$\( Z \in \mathbb{R}^{d_z \times \ell_z} \)$, vector representations of context sequence. <br>
+
+**Output:**  
+$\( \hat{V} \in \mathbb{R}^{d_{out} \times \ell_x} \)$, updated representations of tokens in X, folding in information from tokens in Z. <br>
+
+**Hyperparameters:** 
+H, number of attention heads <br>
+$\( \text{Mask} \in \{0,1\}^{\ell_z \times \ell_x} \)$ <br>
+
+**Parameters:** $W$ consisting of: <br>
+
+For $\( h \in [H] \)$, $\( W^h_{qkv} \)$ consisting of: <br>
+$\( W^h_q \in \mathbb{R}^{d_{attn} \times d_x} \)$, $\( b^h_q \in \mathbb{R}^{d_{attn}} \)$ <br>
+$\( W^h_k \in \mathbb{R}^{d_{attn} \times d_z} \)$, $\( b^h_k \in \mathbb{R}^{d_{attn}} \)$ <br>
+$\( W^h_v \in \mathbb{R}^{d_{mid} \times d_z} \)$, $\( b^h_v \in \mathbb{R}^{d_{mid}} \)$ <br>
+$\( W_o \in \mathbb{R}^{d_{out} \times H \times d_{mid}} \)$, $\( b_o \in \mathbb{R}^{d_{out}} \)$ <br>
+
+1. For $\( h \in [H] \)$: <br>
+2. $\( y^h \leftarrow \text{Attention}(X, Z|W^h_{qkv}, \text{Mask}) \)$ <br>
+3. $\( Y \leftarrow [y^1, y^2, ..., y^H] \)$ <br>
+4. Return $\( \tilde{V} = W_o Y + b_o^T \)$
+
+### Algorithm: Group Query Attention (need work)
 
 
-### Algorithm: Group Query Attention
-
-
-### Algorithm: RMS Layer Normalization
+### Algorithm: RMS Layer Normalization (need work)
 
 
 ### Algorithm: Unembedding
