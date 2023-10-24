@@ -3,6 +3,92 @@
 Touvron, H., Martin, L., Stone, K., Albert, P., Almahairi, A., Babaei, Y., Bashlykov, N., Batra, S., Bhargava, P., Bhosale, S., Bikel, D., Blecher, L., Ferrer, C. C., Chen, M., Cucurull, G., Esiobu, D., Fernandes, J., Fu, J., Fu, W., … Scialom, T. (2023). Llama 2: Open Foundation and Fine-Tuned Chat Models (arXiv:2307.09288). arXiv. http://arxiv.org/abs/2307.09288
 
 
+### Algorithm: Token Embedding
+
+**Input:** $\( v \in V \cong [N_v] \)$, a token ID.  
+**Output:** $\( e \in \mathbb{R}^{d_e} \)$, the vector representation of the token.  
+**Parameters:** $\( W_e \in \mathbb{R}^{d_e \times N_v} \)$, the token embedding matrix.
+
+1. return $e = W_e[:, v]$
+
+### Algorithm: Rotary Positional Embedding
+
+**Input:** <br>
+    $x_q \in R^{bs \times len \times d_model}$ - Query tensor <br>
+    $x_k \in R^{bs \times len \times d_model}$ - Key tensor <br>
+    $l_{\text{max}}$ - Maximum sequence length <br>
+
+**Output:**
+    xq, xk - Query and key tensors with rotary embeddings
+
+**Parameters:**
+    θ - Scaling hyperparameter
+    dims - Number of dimensions  
+   
+1. Compute frequencies:
+    freqs ← 1 / (θ^(arange(0, dims, 2) / dims)) 
+
+2. Compute positions:
+    pos ← arange(lmax)
+    
+3. Outer product: 
+    freqs ← freqs ⊗ pos
+
+4. Get complex exponentials:
+    freqs_cis ← cis(freqs) 
+
+5. Reshape for broadcasting:
+    freqs_cis ← reshape(freqs_cis, xq.shape)
+
+6. Apply embeddings:
+    xq_c ← view_as_complex(flatten(xq))
+    xk_c ← view_as_complex(flatten(xk))
+    
+    xq'_c ← xq_c ⊙ freqs_cis
+    xk'_c ← xk_c ⊙ freqs_cis
+    
+7. View as real:
+    xq' ← view_as_real(xq'_c)
+    xk' ← view_as_real(xk'_c)
+    
+return $x_q, x_k$
+
+
+### Algorithm: Basic Single-query Attention
+**Input:**  
+$\( e \in \mathbb{R}^{d_{in}} \)$ - vector representation of the current token. <br>
+$\( e_t \in \mathbb{R}^{d_{in}} \)$ - vector representations of context tokens $\( t \in [T] \).$ <br>
+
+**Output:**  
+$\( \mathbf{v} \in \mathbb{R}^{d_{out}} \)$ - vector representation of the token and context combined. <br>
+
+**Parameters:**  
+$\( W_q, W_k \in \mathbb{R}^{d_{attn} \times d_{in}} \)$, $\( b_q, b_k \in \mathbb{R}^{d_{attn}} \)$ - the query and key linear projections. <br>
+$\( W_v \in \mathbb{R}^{d_{out} \times d_{in}} \)$, $\( b_v \in \mathbb{R}^{d_{out}} \)$ - the value linear projection. <br>
+
+1:  $q \leftarrow W_q e + b_q$ <br>
+2:  $k_t \leftarrow W_k e_t + b_k$ <br>
+3:  $v_t \leftarrow W_v e_t + b_v$ <br>
+4:  $\alpha_t \leftarrow \frac{\exp(q^T k_t / \sqrt{d_{attn}})}{\sum_u \exp(q^T k_u / \sqrt{d_{attn}})}$ <br>
+5:  $\mathbf{\tilde{v}} = \sum_{t=1} \alpha_t \times v_t $
+
+### Algorithm: Multi-head Attention
+
+
+### Algorithm: Group Query Attention
+
+
+### Algorithm: RMS Layer Normalization
+
+
+### Algorithm: Unembedding
+**Input:** $\( e \in \mathbb{R}^{d_e} \)$: a token encoding.   
+**Output:** $\( p \in \Delta(V) \)$: a probability distribution over the vocabulary.   
+**Parameters:** $\( W_u \in \mathbb{R}^{N \times d_e} \)$: the unembedding matrix.   
+
+1. return p = $softmax(W_u e)$
+
+
 ## Presenters
 - Ricky Sun
 - Yuning Wu
@@ -258,9 +344,10 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 
 ## Discussion Question: How can we improve some of these architecture components?
 
-#### Source code -> Pseudal-code
 
-**Algorithm: DTransformer**
+## Source code -> Pseudal-code
+
+### Algorithm: DTransformer
 
 **Input:** `x`, a sequence of token IDs.
 
@@ -289,6 +376,11 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
      - $X \leftarrow X + w^l_{mlp2} \cdot \text{SwiGLU}(w^l_{mlp1} \tilde{X} + b^l_{mlp1}1^T) + b^l_{mlp2}1^T$
 5. For each `t` in `ℓ`: $X[:,t] \leftarrow {RMSLayerNorm}(X[:,t], \gamma, \beta)$
 6. Return $P = \text{softmax}(W_u X)$
+
+
+
+
+
 **************************
 
 ## Critical Analysis & Discussion
