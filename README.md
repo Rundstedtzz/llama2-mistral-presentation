@@ -287,8 +287,6 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 8. Convert the results back to real values: $\( x_q' \), \( x_k' \)$   
 9. Return $\( x_q' \)$ and $\( x_k' \)$   
 
-polar(ones_like($freqs_{mat}$),$freqs_{mat}$)
-
 ### Algorithm: Basic Single-query Attention
 **Input:**  
 $\( e \in \mathbb{R}^{d_{in}} \)$ - vector representation of the current token. <br>
