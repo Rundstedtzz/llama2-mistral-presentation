@@ -512,8 +512,8 @@ $Wo ∈ R^{d_{out}×H×d_{att}}$, Wo is the output linear transformation.
 - Understanding Llama2 Architecture: https://ai.plainenglish.io/understanding-llama2-kv-cache-grouped-query-attention-rotary-embedding-and-more-c17e5f49a6d7
 - Llama 2 explained Youtube Video: https://www.youtube.com/watch?v=Mn_9W1nCFLo
 
-## Video Overview of Llama 2 Models
-https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/71966ca2-4d89-4d9b-954f-952834dc25de
+## Video Overview of Llama 2 Models  
+https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/df258de1-339d-4818-897a-3bbecf0d580b
 
 
 
