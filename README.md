@@ -434,7 +434,7 @@ $Wo ∈ R^{d_{out}×H×d_{att}}$, Wo is the output linear transformation.
 4. For each `l` from 1 to `L`:
    - For each `t` in `ℓ`:
      - $X{[:,t]} \leftarrow {RMSLayerNorm}(\tilde{X}{[:,t]} | \gamma_l{1}, \beta_l{1})$
-     - $X \leftarrow X + \text{Group Query Attention}(X, W_l, \text{Mask}[t, :] = [t \leq t'])$$
+     - $X \leftarrow X + \text{GroupedQueryAttention}(X, W_l, \text{Mask}[t, :] = [t \leq t'])$$
      - $X{[:,t]} \leftarrow {RMSLayerNorm}(\tilde{X}{[:,t]} | \gamma_l{2}, \beta_l{2})$
      - $X \leftarrow X + w^l_{mlp2} \cdot \text{SwiGLU}(w^l_{mlp1} \tilde{X} + b^l_{mlp1}1^T) + b^l_{mlp2}1^T$
 5. For each `t` in `ℓ`: $X[:,t] \leftarrow {RMSLayerNorm}(X[:,t], \gamma, \beta)$
