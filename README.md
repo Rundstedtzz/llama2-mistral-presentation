@@ -12,46 +12,23 @@ Touvron, H., Martin, L., Stone, K., Albert, P., Almahairi, A., Babaei, Y., Bashl
 1. return $e = W_e[:, v]$
 
 ### Algorithm: Rotary Positional Embedding (need work)
+**Input:** $\( x_q, x_k \) ∈ \( \mathbb{R}^{d} \)$, query and key tensors.  
+**Output:** $\( x_q', x_k' \) ∈ \( \mathbb{R}^{d} \)$, tensors with rotary embeddings applied.   
+**Parameters:**    
+  dim $∈ \( \mathbb{N} \)$, dimension of the frequency tensor.   
+  end $∈ \( \mathbb{N} \)$, end index for precomputing frequencies.   
+  $\theta$ $∈ \( \mathbb{R} \)$, scaling factor for frequency computation, default to 10000.0.   
+  freqs_cis $∈ \( \mathbb{C}^{dim \times end} \)$, precomputed frequency tensor with complex exponentials.   
 
-**Input:** <br>
-    $x_q \in R^{bs \times len \times d_model}$ - Query tensor <br>
-    $x_k \in R^{bs \times len \times d_model}$ - Key tensor <br>
-    $l_{\text{max}}$ - Maximum sequence length <br>
-
-**Output:**
-    xq, xk - Query and key tensors with rotary embeddings
-
-**Parameters:**
-    θ - Scaling hyperparameter
-    dims - Number of dimensions  
-   
-1. Compute frequencies:
-    freqs ← 1 / (θ^(arange(0, dims, 2) / dims)) 
-
-2. Compute positions:
-    pos ← arange(lmax)
-    
-3. Outer product: 
-    freqs ← freqs ⊗ pos
-
-4. Get complex exponentials:
-    freqs_cis ← cis(freqs) 
-
-5. Reshape for broadcasting:
-    freqs_cis ← reshape(freqs_cis, xq.shape)
-
-6. Apply embeddings:
-    xq_c ← view_as_complex(flatten(xq))
-    xk_c ← view_as_complex(flatten(xk))
-    
-    xq'_c ← xq_c ⊙ freqs_cis
-    xk'_c ← xk_c ⊙ freqs_cis
-    
-7. View as real:
-    xq' ← view_as_real(xq'_c)
-    xk' ← view_as_real(xk'_c)
-    
-return $x_q, x_k$
+1: Compute frequency scale: $\( \text{freqs} = \frac{1.0}{(\theta ^ {(\text{range}(0, \text{dim}, 2)[: (\text{dim} // 2)] / \text{dim})}) \)}$   
+2: Initialize time indices: $\( t = range(\text{end}) \)$   
+3: Compute outer product of t and freqs: freqs_mat = $\text{outer}(t, \text{freqs}) \)$   
+4: Convert freqs_mat to polar coordinates: freqs_cis = $\text{polar}(ones\_like(\text{freqs_mat}), \text{freqs_mat}) \)$
+5: Convert $\( x_q \)$ and $\( x_k \)$ into complex matrices
+6: Reshape $\( \text{freqs_cis} \)$ for broadcasting compatibility with $\( x_q \)$ and $\( x_k \)$
+7: Apply rotary embeddings to $\( x_q \)$ and $\( x_k \)$ using complex multiplication
+8: Convert the results back to real values: $\( x_q' \), \( x_k' \)$
+9: Return $\( x_q' \)$ and $\( x_k' \)$
 
 
 ### Algorithm: Basic Single-query Attention
@@ -124,7 +101,17 @@ $\( W_o \in \mathbb{R}^{d_{out} \times H \times d_{mid}} \)$, $\( b_o \in \mathb
 ### Algorithm: Group Query Attention (need work)
 
 
-### Algorithm: RMS Layer Normalization (need work)
+### Algorithm: RMS Layer Normalization
+
+**Input:** $x ∈ ℝ^d$, neural network activations.   
+**Output:** $y ∈ ℝ^d$, normalized activations.   
+**Parameters:** $γ, β ∈ ℝ^d$, element-wise scale and offset.   
+
+1. $μ ← Σ_{i=1}^d x[i]/d$
+2. $σ^2 ← Σ_{i=1}^d (x[i] - μ)^2/d$
+3. $RMS ← sqrt(Σ_{i=1}^d x[i]^2/d)$
+4. $y ← (x/RMS) * γ + β$
+5. return $y$
 
 
 ### Algorithm: Unembedding
@@ -388,9 +375,9 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 
 <img width="1000" alt="image" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/a425964f-49cf-4d2c-92f1-8aa338b19b00">
 
-## Discussion Question: How can we improve some of these architecture components?
+## Discussion Question: How to balance between usefulness and helpfulness (false refusal, variance-bias tradeoff)
 
-
+**************************
 ## Source code -> Pseudal-code
 
 ### Algorithm: DTransformer
@@ -404,7 +391,7 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 **Parameters:**
 - $W_e \in \mathbb{R}^{d_e \times N}$, $W_p \in \mathbb{R}^{d_e \times ℓ_{\text{max}}}$: the token and rotary positional embedding matrices.
 - For each layer `l`:
-  - $W_l$, Group Query Attention multi-head attention parameters for layer `l`.
+  - $W_l$, Group Query Attention parameters for layer `l`.
   - $\gamma^1, \beta^1, \gamma^2, \beta^2$: sets of RMS layer-norm parameters.
   - $w^l_{mlp1}, b^l_{mlp1}, w^l_{mlp2}, b^l_{mlp2}$: MLP parameters.
 - $\gamma, \beta$: final RMSlayer-norm parameters.
@@ -417,15 +404,11 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 4. For each `l` from 1 to `L`:
    - For each `t` in `ℓ`:
      - $X{[:,t]} \leftarrow {RMSLayerNorm}(\tilde{X}{[:,t]} | \gamma_l{1}, \beta_l{1})$
-     - $X \leftarrow X + \text{GQA-MHAttention}(X, W_l, \text{Mask}[t, :] = [t \leq t'])$$
+     - $X \leftarrow X + \text{Group Query Attention}(X, W_l, \text{Mask}[t, :] = [t \leq t'])$$
      - $X{[:,t]} \leftarrow {RMSLayerNorm}(\tilde{X}{[:,t]} | \gamma_l{2}, \beta_l{2})$
      - $X \leftarrow X + w^l_{mlp2} \cdot \text{SwiGLU}(w^l_{mlp1} \tilde{X} + b^l_{mlp1}1^T) + b^l_{mlp2}1^T$
 5. For each `t` in `ℓ`: $X[:,t] \leftarrow {RMSLayerNorm}(X[:,t], \gamma, \beta)$
 6. Return $P = \text{softmax}(W_u X)$
-
-
-
-
 
 **************************
 
@@ -480,7 +463,6 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 - Rotary Positional Embedding (RoPE): https://arxiv.org/abs/2104.09864  
 - SwiGLU Activation Function: https://paperswithcode.com/method/swiglu
 - Group Query Attention Paper: https://arxiv.org/pdf/2305.13245.pdf
-- Rotary Position Embedding Paper: https://arxiv.org/pdf/2305.13245.pdf
 - MMLU Dataset: https://paperswithcode.com/dataset/mmlu  
 - MMLU Paper: https://arxiv.org/abs/2009.03300
 - Formal Algorithm of Transformers Paper: https://arxiv.org/pdf/2207.09238.pdf
@@ -497,6 +479,7 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 - Transformers Explained: https://deepgram.com/learn/visualizing-and-explaining-transformer-models-from-the-ground-up  
 - Activation Functions Explained: https://www.geeksforgeeks.org/activation-functions-neural-networks/  
 - Understanding Llama2 Architecture: https://ai.plainenglish.io/understanding-llama2-kv-cache-grouped-query-attention-rotary-embedding-and-more-c17e5f49a6d7
+- Llama 2 explained Youtube Video: https://www.youtube.com/watch?v=Mn_9W1nCFLo
 
 ## Video Overview of Llama 2 Models
 https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/63605514/71966ca2-4d89-4d9b-954f-952834dc25de
