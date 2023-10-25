@@ -275,7 +275,7 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
   dim $∈ \( \mathbb{N} \)$, dimension of the frequency tensor.   
   end $∈ \( \mathbb{N} \)$, end index for precomputing frequencies.   
   $\theta$ $∈ \( \mathbb{R} \)$, scaling factor for frequency computation, default to 10000.0.   
-  $freqs_cis$ $∈ \( \mathbb{C}^{dim \times end} \)$, precomputed frequency tensor with complex exponentials.   
+  $freqs_{cis}$ $∈ \( \mathbb{C}^{dim \times end} \)$, precomputed frequency tensor with complex exponentials.   
 
 1. Compute frequency scale: $\( \text{freqs} = \frac{1.0}{(\theta ^ {(\text{range}(0, \text{dim}, 2)[: (\text{dim} // 2)] / \text{dim})}) }\)$   
 2. Initialize time indices: $\( t = range(\text{end}) \)$   
@@ -287,7 +287,7 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 8. Convert the results back to real values: $\( x_q' \), \( x_k' \)$   
 9. Return $\( x_q' \)$ and $\( x_k' \)$   
 
-polar(ones_like(freqs_mat),freqs_mat)
+polar(ones_like($freqs_{mat}$),$freqs_{mat}$)
 
 ### Algorithm: Basic Single-query Attention
 **Input:**  
