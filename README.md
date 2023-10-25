@@ -2,126 +2,6 @@
 
 Touvron, H., Martin, L., Stone, K., Albert, P., Almahairi, A., Babaei, Y., Bashlykov, N., Batra, S., Bhargava, P., Bhosale, S., Bikel, D., Blecher, L., Ferrer, C. C., Chen, M., Cucurull, G., Esiobu, D., Fernandes, J., Fu, J., Fu, W., … Scialom, T. (2023). Llama 2: Open Foundation and Fine-Tuned Chat Models (arXiv:2307.09288). arXiv. http://arxiv.org/abs/2307.09288
 
-
-### Algorithm: Token Embedding
-
-**Input:** $\( v \in V \cong [N_v] \)$, a token ID.  
-**Output:** $\( e \in \mathbb{R}^{d_e} \)$, the vector representation of the token.  
-**Parameters:** $\( W_e \in \mathbb{R}^{d_e \times N_v} \)$, the token embedding matrix.
-
-1. return $e = W_e[:, v]$
-
-### Algorithm: Rotary Positional Embedding (need work)
-**Input:** $\( x_q, x_k \) ∈ \( \mathbb{R}^{d} \)$, query and key tensors.  
-**Output:** $\( x_q', x_k' \) ∈ \( \mathbb{R}^{d} \)$, tensors with rotary embeddings applied.   
-**Parameters:**    
-  dim $∈ \( \mathbb{N} \)$, dimension of the frequency tensor.   
-  end $∈ \( \mathbb{N} \)$, end index for precomputing frequencies.   
-  $\theta$ $∈ \( \mathbb{R} \)$, scaling factor for frequency computation, default to 10000.0.   
-  freqs_cis $∈ \( \mathbb{C}^{dim \times end} \)$, precomputed frequency tensor with complex exponentials.   
-
-1: Compute frequency scale: $\( \text{freqs} = \frac{1.0}{(\theta ^ {(\text{range}(0, \text{dim}, 2)[: (\text{dim} // 2)] / \text{dim})}) \)}$   
-2: Initialize time indices: $\( t = range(\text{end}) \)$   
-3: Compute outer product of t and freqs: freqs_mat = $\text{outer}(t, \text{freqs}) \)$   
-4: Convert freqs_mat to polar coordinates: freqs_cis = $\text{polar}(ones\_like(\text{freqs_mat}), \text{freqs_mat}) \)$
-5: Convert $\( x_q \)$ and $\( x_k \)$ into complex matrices
-6: Reshape $\( \text{freqs_cis} \)$ for broadcasting compatibility with $\( x_q \)$ and $\( x_k \)$
-7: Apply rotary embeddings to $\( x_q \)$ and $\( x_k \)$ using complex multiplication
-8: Convert the results back to real values: $\( x_q' \), \( x_k' \)$
-9: Return $\( x_q' \)$ and $\( x_k' \)$
-
-
-### Algorithm: Basic Single-query Attention
-**Input:**  
-$\( e \in \mathbb{R}^{d_{in}} \)$ - vector representation of the current token. <br>
-$\( e_t \in \mathbb{R}^{d_{in}} \)$ - vector representations of context tokens $\( t \in [T] \).$ <br>
-
-**Output:**  
-$\( \mathbf{v} \in \mathbb{R}^{d_{out}} \)$ - vector representation of the token and context combined. <br>
-
-**Parameters:**  
-$\( W_q, W_k \in \mathbb{R}^{d_{attn} \times d_{in}} \)$, $\( b_q, b_k \in \mathbb{R}^{d_{attn}} \)$ - the query and key linear projections. <br>
-$\( W_v \in \mathbb{R}^{d_{out} \times d_{in}} \)$, $\( b_v \in \mathbb{R}^{d_{out}} \)$ - the value linear projection. <br>
-
-1:  $q \leftarrow W_q e + b_q$ <br>
-2:  $k_t \leftarrow W_k e_t + b_k$ <br>
-3:  $v_t \leftarrow W_v e_t + b_v$ <br>
-4:  $\alpha_t \leftarrow \frac{\exp(q^T k_t / \sqrt{d_{attn}})}{\sum_u \exp(q^T k_u / \sqrt{d_{attn}})}$ <br>
-5:  $\mathbf{\tilde{v}} = \sum_{t=1} \alpha_t \times v_t $
-
-### Algorithm: Attention
-**Input:**  
-$\( X \in \mathbb{R}^{d_x \times \ell_x} \)$, vector representations of primary sequence. <br>
-$\( Z \in \mathbb{R}^{d_z \times \ell_z} \)$, vector representations of context sequence. <br>
-
-**Output:**  
-$\( \tilde{v} \in \mathbb{R}^{d_{out} \times \ell_x} \)$, updated representations of tokens in X, folding in information from tokens in Z. <br>
-
-**Parameters:** $\( W_{qkv} \)$ consisting of: <br>
-$\( W_q \in \mathbb{R}^{d_{attn} \times d_x} \)$, $\( b_q \in \mathbb{R}^{d_{attn}} \)$ <br>
-$\( W_k \in \mathbb{R}^{d_{attn} \times d_z} \)$, $\( b_k \in \mathbb{R}^{d_{attn}} \)$ <br>
-$\( W_v \in \mathbb{R}^{d_{out} \times d_z} \)$, $\( b_v \in \mathbb{R}^{d_{out}} \)$ <br>
-
-**Hyperparameters:**
-𝐻, number of attention heads <br>
-$\( \text{Mask} \in \{0,1\}^{\ell_z \times \ell_x} \)$ <br>
-
-1. $\( q \leftarrow W_q X + b_q^T \)$  [[Query $\( \in \mathbb{R}^{d_{attn} \times \ell_x} \)]]$ <br>
-2. $\( k \leftarrow W_k Z + b_k^T \)$  [[Key $\( \in \mathbb{R}^{d_{attn} \times \ell_z} \)]]$ <br>
-3. $\( v \leftarrow W_v Z + b_v^T \)$  [[Value $\( \in \mathbb{R}^{d_{out} \times \ell_z} \)]]$ <br>
-4. $\( S \leftarrow KTQ \)$  [[Score $\( \in \mathbb{R}^{\ell_z \times \ell_x} \)]]$ <br>
-5. For each $\( t_z, t_x \)$, if $\( \text{Mask}[t_z, t_x] \)$, then $\( S[t_z, t_x] \leftarrow -\infty \)$ <br>
-6. $\( \tilde{v} = V \cdot \text{softmax}(S/\sqrt{d_{attn}}) \)$ <br>
-
-### Algorithm: Multi-head Attention
-**Input:**  
-$\( X \in \mathbb{R}^{d_x \times \ell_x} \)$, vector representations of primary sequence. <br>
-$\( Z \in \mathbb{R}^{d_z \times \ell_z} \)$, vector representations of context sequence. <br>
-
-**Output:**  
-$\( \hat{V} \in \mathbb{R}^{d_{out} \times \ell_x} \)$, updated representations of tokens in X, folding in information from tokens in Z. <br>
-
-**Hyperparameters:** 
-H, number of attention heads <br>
-$\( \text{Mask} \in \{0,1\}^{\ell_z \times \ell_x} \)$ <br>
-
-**Parameters:** $W$ consisting of: <br>
-
-For $\( h \in [H] \)$, $\( W^h_{qkv} \)$ consisting of: <br>
-$\( W^h_q \in \mathbb{R}^{d_{attn} \times d_x} \)$, $\( b^h_q \in \mathbb{R}^{d_{attn}} \)$ <br>
-$\( W^h_k \in \mathbb{R}^{d_{attn} \times d_z} \)$, $\( b^h_k \in \mathbb{R}^{d_{attn}} \)$ <br>
-$\( W^h_v \in \mathbb{R}^{d_{mid} \times d_z} \)$, $\( b^h_v \in \mathbb{R}^{d_{mid}} \)$ <br>
-$\( W_o \in \mathbb{R}^{d_{out} \times H \times d_{mid}} \)$, $\( b_o \in \mathbb{R}^{d_{out}} \)$ <br>
-
-1. For $\( h \in [H] \)$: <br>
-2. $\( y^h \leftarrow \text{Attention}(X, Z|W^h_{qkv}, \text{Mask}) \)$ <br>
-3. $\( Y \leftarrow [y^1, y^2, ..., y^H] \)$ <br>
-4. Return $\( \tilde{V} = W_o Y + b_o^T \)$
-
-### Algorithm: Group Query Attention (need work)
-
-
-### Algorithm: RMS Layer Normalization
-
-**Input:** $x ∈ ℝ^d$, neural network activations.   
-**Output:** $y ∈ ℝ^d$, normalized activations.   
-**Parameters:** $γ, β ∈ ℝ^d$, element-wise scale and offset.   
-
-1. $μ ← Σ_{i=1}^d x[i]/d$
-2. $σ^2 ← Σ_{i=1}^d (x[i] - μ)^2/d$
-3. $RMS ← sqrt(Σ_{i=1}^d x[i]^2/d)$
-4. $y ← (x/RMS) * γ + β$
-5. return $y$
-
-
-### Algorithm: Unembedding
-**Input:** $\( e \in \mathbb{R}^{d_e} \)$: a token encoding.   
-**Output:** $\( p \in \Delta(V) \)$: a probability distribution over the vocabulary.   
-**Parameters:** $\( W_u \in \mathbb{R}^{N \times d_e} \)$: the unembedding matrix.   
-
-1. return p = $softmax(W_u e)$
-
-
 ## Presenters
 - Ricky Sun
 - Yuning Wu
@@ -138,7 +18,7 @@ $\( W_o \in \mathbb{R}^{d_{out} \times H \times d_{mid}} \)$, $\( b_o \in \mathb
   - Rotary Positional Embedding
   - RMS Layer Normalization
   - SwiGLU (Swiss Function + Swiss Function + Gated Linear Unit) Activation Function
-  - Group Query Attention
+  - Grouped-Query Attention
   - Ghost Attention
   - Pseudo Code
   - Discussion Question 1
@@ -334,7 +214,7 @@ During the forward pass, the input tensor x is subjected to multi layer of linea
 
 ### Unique to Llama 2
 
-#### Attention - Group Query Attention (GQA)
+#### Attention - Grouped-Query Attention (GQA)
 
 Llama incorporates a technique called grouped-query attention (GQA) to address memory bandwidth challenges during the autoregressive decoding of Transformer models. The primary issue stems from the need to load decoder weights and attention keys/values at each processing step, which consumes excessive memory.
 
@@ -380,6 +260,156 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
 **************************
 ## Source code -> Pseudal-code
 
+### Algorithm: Token Embedding
+
+**Input:** $\( v \in V \cong [N_v] \)$, a token ID.  
+**Output:** $\( e \in \mathbb{R}^{d_e} \)$, the vector representation of the token.  
+**Parameters:** $\( W_e \in \mathbb{R}^{d_e \times N_v} \)$, the token embedding matrix.
+
+1. return $e = W_e[:, v]$
+
+### Algorithm: Rotary Positional Embedding
+**Input:** $\( x_q, x_k \) ∈ \( \mathbb{R}^{d} \)$, query and key tensors.  
+**Output:** $\( x_q', x_k' \) ∈ \( \mathbb{R}^{d} \)$, tensors with rotary embeddings applied.   
+**Parameters:**    
+  dim $∈ \( \mathbb{N} \)$, dimension of the frequency tensor.   
+  end $∈ \( \mathbb{N} \)$, end index for precomputing frequencies.   
+  $\theta$ $∈ \( \mathbb{R} \)$, scaling factor for frequency computation, default to 10000.0.   
+  $freqs_cis$ $∈ \( \mathbb{C}^{dim \times end} \)$, precomputed frequency tensor with complex exponentials.   
+
+1. Compute frequency scale: $\( \text{freqs} = \frac{1.0}{(\theta ^ {(\text{range}(0, \text{dim}, 2)[: (\text{dim} // 2)] / \text{dim})}) }\)$   
+2. Initialize time indices: $\( t = range(\text{end}) \)$   
+3. Compute outer product of t and freqs: $freqs_{mat}$ = $\text{outer}(t, \text{freqs}) \)$      
+4. Convert $freqs_{mat}$ to polar coordinates: $freqs_{cis}$ = polar(ones_like($freqs_{mat}$), $freqs_{mat}$)     
+5. Convert $\( x_q \)$ and $\( x_k \)$ into complex matrices   
+6. Reshape $freqs_{cis}$ for broadcasting compatibility with $\( x_q \)$ and $\( x_k \)$   
+7. Apply rotary embeddings to $\( x_q \)$ and $\( x_k \)$ using complex multiplication   
+8. Convert the results back to real values: $\( x_q' \), \( x_k' \)$   
+9. Return $\( x_q' \)$ and $\( x_k' \)$   
+
+polar(ones_like(freqs_mat),freqs_mat)
+
+### Algorithm: Basic Single-query Attention
+**Input:**  
+$\( e \in \mathbb{R}^{d_{in}} \)$ - vector representation of the current token. <br>
+$\( e_t \in \mathbb{R}^{d_{in}} \)$ - vector representations of context tokens $\( t \in [T] \).$ <br>
+
+**Output:**  
+$\( \mathbf{v} \in \mathbb{R}^{d_{out}} \)$ - vector representation of the token and context combined. <br>
+
+**Parameters:**  
+$\( W_q, W_k \in \mathbb{R}^{d_{attn} \times d_{in}} \)$, $\( b_q, b_k \in \mathbb{R}^{d_{attn}} \)$ - the query and key linear projections. <br>
+$\( W_v \in \mathbb{R}^{d_{out} \times d_{in}} \)$, $\( b_v \in \mathbb{R}^{d_{out}} \)$ - the value linear projection. <br>
+
+1.  $q \leftarrow W_q e + b_q$ <br>
+2.  $k_t \leftarrow W_k e_t + b_k$ <br>
+3.  $v_t \leftarrow W_v e_t + b_v$ <br>
+4.  $\alpha_t \leftarrow \frac{\exp(q^T k_t / \sqrt{d_{attn}})}{\sum_u \exp(q^T k_u / \sqrt{d_{attn}})}$ <br>
+5.  $\mathbf{\tilde{v}} = \sum_{t=1} \alpha_t \times v_t $
+
+### Algorithm: Attention
+**Input:**  
+$\( X \in \mathbb{R}^{d_x \times \ell_x} \)$, vector representations of primary sequence. <br>
+$\( Z \in \mathbb{R}^{d_z \times \ell_z} \)$, vector representations of context sequence. <br>
+
+**Output:**  
+$\( \tilde{v} \in \mathbb{R}^{d_{out} \times \ell_x} \)$, updated representations of tokens in X, folding in information from tokens in Z. <br>
+
+**Parameters:** $\( W_{qkv} \)$ consisting of: <br>
+$\( W_q \in \mathbb{R}^{d_{attn} \times d_x} \)$, $\( b_q \in \mathbb{R}^{d_{attn}} \)$ <br>
+$\( W_k \in \mathbb{R}^{d_{attn} \times d_z} \)$, $\( b_k \in \mathbb{R}^{d_{attn}} \)$ <br>
+$\( W_v \in \mathbb{R}^{d_{out} \times d_z} \)$, $\( b_v \in \mathbb{R}^{d_{out}} \)$ <br>
+
+**Hyperparameters:**
+𝐻, number of attention heads <br>
+$\( \text{Mask} \in \{0,1\}^{\ell_z \times \ell_x} \)$ <br>
+
+1. $\( q \leftarrow W_q X + b_q^T \)$  [[Query $\( \in \mathbb{R}^{d_{attn} \times \ell_x} \)]]$ <br>
+2. $\( k \leftarrow W_k Z + b_k^T \)$  [[Key $\( \in \mathbb{R}^{d_{attn} \times \ell_z} \)]]$ <br>
+3. $\( v \leftarrow W_v Z + b_v^T \)$  [[Value $\( \in \mathbb{R}^{d_{out} \times \ell_z} \)]]$ <br>
+4. $\( S \leftarrow KTQ \)$  [[Score $\( \in \mathbb{R}^{\ell_z \times \ell_x} \)]]$ <br>
+5. For each $\( t_z, t_x \)$, if $\( \text{Mask}[t_z, t_x] \)$, then $\( S[t_z, t_x] \leftarrow -\infty \)$ <br>
+6. $\( \tilde{v} = V \cdot \text{softmax}(S/\sqrt{d_{attn}}) \)$ <br>
+
+### Algorithm: Multi-head Attention
+**Input:**  
+$\( X \in \mathbb{R}^{d_x \times \ell_x} \)$, vector representations of primary sequence. <br>
+$\( Z \in \mathbb{R}^{d_z \times \ell_z} \)$, vector representations of context sequence. <br>
+
+**Output:**  
+$\( \tilde{V} \in \mathbb{R}^{d_{out} \times \ell_x} \)$, updated representations of tokens in X, folding in information from tokens in Z. <br>
+
+**Hyperparameters:** 
+H, number of attention heads <br>
+$\( \text{Mask} \in \{0,1\}^{\ell_z \times \ell_x} \)$ <br>
+
+**Parameters:** $W$ consisting of: <br>
+
+For $\( h \in [H] \)$, $\( W^h_{qkv} \)$ consisting of: <br>
+$\( W^h_q \in \mathbb{R}^{d_{attn} \times d_x} \)$, $\( b^h_q \in \mathbb{R}^{d_{attn}} \)$ <br>
+$\( W^h_k \in \mathbb{R}^{d_{attn} \times d_z} \)$, $\( b^h_k \in \mathbb{R}^{d_{attn}} \)$ <br>
+$\( W^h_v \in \mathbb{R}^{d_{mid} \times d_z} \)$, $\( b^h_v \in \mathbb{R}^{d_{mid}} \)$ <br>
+$\( W_o \in \mathbb{R}^{d_{out} \times H \times d_{mid}} \)$, $\( b_o \in \mathbb{R}^{d_{out}} \)$ <br>
+
+1. For $\( h \in [H] \)$: <br>
+2. $\( y^h \leftarrow \text{Attention}(X, Z|W^h_{qkv}, \text{Mask}) \)$ <br>
+3. $\( Y \leftarrow [y^1, y^2, ..., y^H] \)$ <br>
+4. Return $\( \tilde{V} = W_o Y + b_o^T \)$
+
+### Algorithm: Grouped-Query Attention
+$\tilde{V}$ ← $GroupedQueryAttention(X, Z|W, Mask)$  
+
+**Input:** $X ∈ R^{d_{\text{x}} \times l_{\text{x}}}$, $Z ∈ R^{d_{\text{z}}×l_{\text{z}}}$, vector representations of primary and context sequence.   
+**Output:** $\tilde{V} ∈ R^{d_{\text{out}}×l_{\text{x}}}$, updated representations of tokens in X, folding in information from tokens in Z.   
+
+**Hyperparameters:** 
+H, number of local attention heads   
+$N_kv$, number of key-value pairs   
+RepetitionFactor, repetitions for local heads ($N_rep$)   
+$\( \text{Mask} \in \{0,1\}^{\ell_z \times \ell_x} \)$, attention mask   
+
+**Parameters:** W consisting of:  
+For $h ∈ [H], W^h$ consisting of:    
+    $W^h_q ∈ R^{d_{att}×d_x}$,   
+    $W^h_k ∈ R^{d_{att}×d_z}$,  
+    $W^h_v ∈ R^{d_{att}×d_z}$   
+$Wo ∈ R^{d_{out}×H×d_{att}}$, Wo is the output linear transformation.
+
+1. For $h ∈ [H]$:  
+2. $Xq_h$ ← $LinearTransformation(X, W^h_q)$  
+3. $Xk_h$ ← $LinearTransformation(Z, W^h_k)$  
+4. $Xv_h$ ← $LinearTransformation(Z, W^h_v)$  
+5. Cache keys and values: $cache_k$, $cache_v$ based on current position  
+6. If $N_kv < H$:  
+7. Repeat keys and values for local attention using RepetitionFactor  
+8. Compute scores: $S_h$ ← $Xq_h • Xk_h^T / sqrt(datt)$  
+9. Apply mask to scores: $S_h$ ← $S_h + Mask$  
+10. Normalize scores: $S_h$ ← $Softmax(S_h)$  
+11. Compute context: $C_h$ ← $S_h • Xv_h$  
+12. $Y ← [C_1, C_2, ..., C_H]$  
+13. return $\tilde{V} = WoY$  
+
+### Algorithm: RMS Layer Normalization
+
+**Input:** $x ∈ ℝ^d$, neural network activations.   
+**Output:** $y ∈ ℝ^d$, normalized activations.   
+**Parameters:** $γ, β ∈ ℝ^d$, element-wise scale and offset.   
+
+1. $μ ← Σ_{i=1}^d x[i]/d$
+2. $σ^2 ← Σ_{i=1}^d (x[i] - μ)^2/d$
+3. $RMS ← sqrt(Σ_{i=1}^d x[i]^2/d)$
+4. $y ← (x/RMS) * γ + β$
+5. return $y$
+
+
+### Algorithm: Unembedding
+**Input:** $\( e \in \mathbb{R}^{d_e} \)$: a token encoding.   
+**Output:** $\( p \in \Delta(V) \)$: a probability distribution over the vocabulary.   
+**Parameters:** $\( W_u \in \mathbb{R}^{N \times d_e} \)$: the unembedding matrix.   
+
+1. return p = $softmax(W_u e)$
+
+**************************
 ### Algorithm: DTransformer
 
 **Input:** `x`, a sequence of token IDs.
@@ -449,11 +479,12 @@ While GAtt shows promise, it's still in a basic form. There's room for enhanceme
   - Potential biases: If the model shows different sentiments towards different political ideologies, it might be perceived as biased, leading to mistrust or misuse. This also raises questions about the neutrality of AI models and the data they're trained on.
 <img width="400" alt="Screenshot 2023-10-23 at 12 08 14 PM" src="https://github.com/Rundstedtzz/llama2-mistral-presentation/assets/47910316/c0a4603c-e584-48eb-ab93-b536d64005ad">
 
-## Discussion Question 2: Can you think of something else about the model that might be overlooked?
+## Discussion Question 2: Can you think of something else about the model that might be overlooked (Constitutional AI, Responsible Use Guide)?
 
 ## Code Demo
-- https://github.com/Rundstedtzz/llama2-mistral-presentation/blob/main/Fine_tune_Llama_2_code_demo.ipynb
-- https://github.com/Rundstedtzz/llama2-mistral-presentation/blob/main/Run_Llama_2_Chat_Models_on_Your_Computer.ipynb
+- Annotated Llama 2 source code: https://github.com/Rundstedtzz/llama2-mistral-presentation/blob/main/annotated_llama2_code.ipynb  
+- Try Llama 2: https://github.com/Rundstedtzz/llama2-mistral-presentation/blob/main/Run_Llama_2_Chat_Models_on_Your_Computer.ipynb  
+- Fine tune Llama 2: https://github.com/Rundstedtzz/llama2-mistral-presentation/blob/main/Fine_tune_Llama_2_code_demo.ipynb  
 
 ## Paper Citation
 - Llama 1 Paper: https://arxiv.org/abs/2302.13971
